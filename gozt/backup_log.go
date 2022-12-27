@@ -25,7 +25,7 @@ func (ztl *ZtLog) OpenLogFile() {
 	logPath := fmt.Sprintf("%s%c%s", hdir, os.PathSeparator, ".ztbackup")
 	fName := fmt.Sprintf("%04d%02d.log", time.Now().Year(), time.Now().Month())
 	fPath := fmt.Sprintf("%s%c%s", logPath, os.PathSeparator, fName)
-	os.MkdirAll(logPath, 0644)
+	os.MkdirAll(logPath, 0755)
 	//if it fails, openErr will be non-nil
 	ztl.logFile, ztl.openErr = os.OpenFile(fPath, os.O_APPEND|os.O_WRONLY, 0644)
 	if ztl.openErr != nil {
