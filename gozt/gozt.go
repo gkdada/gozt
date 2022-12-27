@@ -6,6 +6,16 @@ import (
 	"time"
 )
 
+type VersionInfo struct {
+	major, minor, revision uint
+}
+
+func VerInfo() VersionInfo {
+	return VersionInfo{3,
+		0,
+		2}
+}
+
 func Fatalln(line string) {
 	fmt.Println(line)
 	os.Exit(1)
@@ -19,7 +29,8 @@ func main() {
 
 	var bkp Backup
 
-	bkp.LogPrintf("ztbackup on Go. (c) gkdada 2022-2022\r\n")
+	vi := VerInfo()
+	bkp.LogPrintf("gozt - ztbackup on Go. ver. %d.%d.%d (c) 2022 Gopal Sagar\r\n", vi.major, vi.minor, vi.revision)
 
 	for i, ctr := range os.Args {
 		if i == 0 {
