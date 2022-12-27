@@ -228,7 +228,7 @@ func (bkp *Backup) processRegularFile(fStart fs.FileInfo, path string, bForward 
 	if bForward {
 		fDst, err := getFileInfo(*bkp.dstBack, path, fStart.Name())
 		if errors.Is(err, fs.ErrNotExist) {
-			fmt.Printf("File %s does not exist.\r\n", bkp.prepareName(path, fStart.Name()))
+			//fmt.Printf("File %s does not exist.\r\n", bkp.prepareName(path, fStart.Name()))
 			status = copyForward
 		} else {
 			status = bkp.copyCheck(path, fStart, fDst)
