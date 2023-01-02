@@ -13,7 +13,7 @@ import (
 func Initialize(szUrl string, pSrc BackupFolder) BackupFolder {
 	foldURL, err := url.Parse(szUrl)
 	if err != nil {
-		log.Fatalf("Unable to parse Source URL", err)
+		log.Fatalln("Unable to parse Source URL", err)
 	}
 	switch foldURL.Scheme {
 	case "smb":
