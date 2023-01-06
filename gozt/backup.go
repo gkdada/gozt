@@ -52,6 +52,8 @@ type Backup struct {
 	folderSkipCount  int
 	statPrinter      *message.Printer
 	srcBack, dstBack *BackupFolder
+
+	osSpecificExcludes []string
 }
 
 func (bkp *Backup) ProcessFlags(flags string) {
@@ -106,6 +108,11 @@ const progress_wheel = "|/-\\"
 
 func (bkp *Backup) recurseBackup(folderPath string) error {
 
+	//read the .ztbackup (if any). Applies only to THIS folder,
+	var zte ztExclude
+
+	zte.LoadFile(*bkp.srcBack, folderPath)
+
 	if len(folderPath) != 0 {
 		fmt.Printf("\rProcessing folder %s\r\n", folderPath)
 	} else {
@@ -135,7 +142,7 @@ func (bkp *Backup) recurseBackup(folderPath string) error {
 	for _, ctr := range fmts {
 		//log.Printf("ctr: %s \t\t%s", ModeString(ctr), ctr.Name())
 		if ctr.Mode().IsRegular() {
-			bkp.processRegularFile(ctr, folderPath, true)
+			bkp.processRegularFile(ctr, folderPath, zte, true)
 		}
 	}
 
@@ -162,7 +169,7 @@ func (bkp *Backup) recurseBackup(folderPath string) error {
 			}
 
 		} else if ctr.Mode().IsRegular() {
-			bkp.processRegularFile(ctr, folderPath, false)
+			bkp.processRegularFile(ctr, folderPath, zte, false)
 		}
 	}
 
@@ -171,7 +178,11 @@ func (bkp *Backup) recurseBackup(folderPath string) error {
 		//log.Printf("ctr: %s \t\t%s", ModeString(ctr), ctr.Name())
 		if ctr.IsDir() && bkp.RecursiveFlag {
 			/*err :=*/
-			bkp.recurseBackup(bkp.prepareName(folderPath, ctr.Name()))
+			if zte.IsExcluded(ctr.Name()) != true {
+				bkp.recurseBackup(bkp.prepareName(folderPath, ctr.Name()))
+			} else {
+				bkp.Statistics.NumFolders++
+			}
 		}
 	}
 
@@ -222,21 +233,28 @@ const (
 	copyDeleteDestination                 //delete the destination
 )
 
-func (bkp *Backup) processRegularFile(fStart fs.FileInfo, path string, bForward bool) error {
+func (bkp *Backup) processRegularFile(fStart fs.FileInfo, path string, zte ztExclude, bForward bool) error {
 	status := copyLeave
 	//1. Does the file exist in destination?
 	if bForward {
-		fDst, err := getFileInfo(*bkp.dstBack, path, fStart.Name())
-		if errors.Is(err, fs.ErrNotExist) {
-			//fmt.Printf("File %s does not exist.\r\n", bkp.prepareName(path, fStart.Name()))
-			status = copyForward
-		} else {
-			status = bkp.copyCheck(path, fStart, fDst)
+		if zte.IsExcluded(fStart.Name()) != true { //skipped due to .ztexclude. Only applies to forward.
+			fDst, err := getFileInfo(*bkp.dstBack, path, fStart.Name())
+			if errors.Is(err, fs.ErrNotExist) {
+				//fmt.Printf("File %s does not exist.\r\n", bkp.prepareName(path, fStart.Name()))
+				status = copyForward
+			} else {
+				status = bkp.copyCheck(path, fStart, fDst)
+			}
 		}
 	} else {
-		_, err := getFileInfo(*bkp.srcBack, path, fStart.Name())
-		if errors.Is(err, fs.ErrNotExist) {
-			status = bkp.fileMissingQuestion(path, fStart)
+		//In Reverse, we check for OS specific only. The rest can stay.
+		if zte.IsOsSpecific(fStart.Name()) == true {
+			status = copyDeleteDestination
+		} else {
+			_, err := getFileInfo(*bkp.srcBack, path, fStart.Name())
+			if errors.Is(err, fs.ErrNotExist) {
+				status = bkp.fileMissingQuestion(path, fStart)
+			}
 		}
 		//if the file exists, no action during backward check
 	}

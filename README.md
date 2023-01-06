@@ -39,6 +39,7 @@ A folder in an remote ssh location must be specified in the form of "ssh://usern
 ### for future implementation
 
  -n  Do not follow symbolic links when backing up a file or a folder.
+ 
  -u  Use anonymous access for any samba share in the source and/or destination folders.
 
 ### examples
@@ -68,8 +69,6 @@ It is recommended that you create a shell script on the USB drive with the targe
 * The combination "-lmr" is convenient for running in an automatically run script (as in a cron job). The same command can then be run manually with "-abr" option to delete the backup copies of intentionally deleted files and folders.
 
 
-## Coming features
-
 ### Exclude files or folders
 
 gozt will support excluding one or more folders and/or files at any level from backup. Salient points:
@@ -78,3 +77,14 @@ gozt will support excluding one or more folders and/or files at any level from b
 *  If a file/folder by that name already exists in destination-folder, they will not be deleted. You will have to do it manually if you want to free up that space.
 *  Try not to add too many lines to a single .ztexclude file since it has to be loaded into memory in its entirety for the duration of the processing of that folder (and its sub-folders).
 *  All shell wildcards are supported (?, *, [...] and [!...])
+
+
+### OS Specific excludes
+
+Each OS will have certain files that are machine specific and/or session specific and these should not be backed up or restored.
+
+There is an ex_list_linux.go which returns items like ".~lock.*" (which is a lock file created by libreoffice applications) and "lost+found". 
+
+An ex_list_windows.go returns items like "hiberfil.sys", "pagefile.sys" and "$Recycle.Bin".
+
+

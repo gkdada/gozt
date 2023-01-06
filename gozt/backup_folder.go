@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -44,6 +46,7 @@ type BackupFolder interface {
 	DeleteFile(path string, name string) error
 	RemoveAll(path string) error
 	SetParams(path string, name string, modTime time.Time, perm fs.FileMode) error
+	getScanner() *bufio.Scanner
 
 	setRootMode(fm fs.FileMode)
 	Close()
@@ -110,4 +113,31 @@ func checkExists(bkps BackupFolder, pSrc BackupFolder) {
 		bkps.setRootMode(fst.Mode())
 	}
 
+}
+
+func loadExcludeList(bkps BackupFolder, path string) []string {
+	err := bkps.OpenFile(path, ".ztexclude")
+	if err != nil {
+		return nil
+	}
+	defer bkps.CloseFile()
+
+	scans := bkps.getScanner()
+
+	//exList := make([]string, 5)
+	var exList []string
+
+	scans.Split(bufio.ScanLines)
+
+	for scans.Scan() {
+		exItem := strings.TrimSpace(scans.Text())
+		if len(exItem) != 0 {
+			exList = append(exList, exItem)
+		}
+	}
+
+	if len(exList) != 0 {
+		return exList
+	}
+	return nil
 }

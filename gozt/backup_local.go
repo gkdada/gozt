@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"io/fs"
 	"log"
 	"net/url"
@@ -86,6 +87,10 @@ func (bkps *LocalBackupFolder) SetParams(path string, name string, modTime time.
 		return err
 	}
 	return err2
+}
+
+func (bkps *LocalBackupFolder) getScanner() *bufio.Scanner {
+	return bufio.NewScanner(bkps.oFile)
 }
 
 func InitializeToPathLocal(szUrl *url.URL, pSrc BackupFolder) BackupFolder {

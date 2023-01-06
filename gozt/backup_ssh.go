@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/fs"
 	"log"
@@ -78,6 +79,10 @@ func (bkps *SftpBackupFolder) CloseFile() error {
 		return err
 	}
 	return nil
+}
+
+func (bkps *SftpBackupFolder) getScanner() *bufio.Scanner {
+	return bufio.NewScanner(bkps.oFile)
 }
 
 func (bkps *SftpBackupFolder) Close() {
