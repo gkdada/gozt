@@ -88,3 +88,10 @@ There is an ex_list_linux.go which returns items like ".~lock.*" (which is a loc
 An ex_list_windows.go returns items like "hiberfil.sys", "pagefile.sys" and "$Recycle.Bin".
 
 
+## Final notes
+
+Tests have shown that this GO language version of this application is somewhat slower than the C++ version (https://github.com/gkdada/ztbackup). However, the codebase of this GO version is smaller, and the general opinion is applications coded in GO are safer since it eliminates worst of the unforced errors like pointer overflow and such. 
+
+Also, this GO version is more portable and hence, I have made effort to include customized system exclusion lists for all major operating systems. If you can add more system file names that need to be excluded (for smoother and trouble-free backup experience), please create pull requests for them.
+
+Thanks for trying out this application.
