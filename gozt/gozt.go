@@ -13,7 +13,7 @@ type VersionInfo struct {
 func VerInfo() VersionInfo {
 	return VersionInfo{3,
 		1,
-		1}
+		2}
 }
 
 func Fatalln(line string) {
@@ -30,7 +30,7 @@ func main() {
 	var bkp Backup
 
 	vi := VerInfo()
-	bkp.LogPrintf("gozt - ztbackup on Go. ver. %d.%d.%d (c) 2022 Gopal Sagar\r\n", vi.major, vi.minor, vi.revision)
+	bkp.LogPrintf("gozt - ztbackup on Go. ver. %d.%d.%d (c) 2023 Gopal Sagar\r\n", vi.major, vi.minor, vi.revision)
 
 	for i, ctr := range os.Args {
 		if i == 0 {

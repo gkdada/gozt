@@ -104,7 +104,7 @@ func (bkps *SftpBackupFolder) DeleteFile(path string, name string) error {
 }
 
 func (bkps *SftpBackupFolder) RemoveAll(path string) error {
-	return bkps.sftpClient.RemoveDirectory(prepareTargetName(bkps, path, ""))
+	return bkps.sftpClient.RemoveAll(prepareTargetName(bkps, path, ""))
 }
 
 func InitializeToPathSftp(szRoot *url.URL, pSrc BackupFolder) BackupFolder {

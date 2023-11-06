@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/eiannone/keyboard v0.0.0-20220611211555-0d226195f203
 	github.com/hirochachacha/go-smb2 v1.1.0
-	github.com/pkg/sftp v1.13.5
+	github.com/pkg/sftp v1.13.6
 	github.com/tzvetkoff-go/fnmatch v0.0.0-20220210160758-879480b5e662
 	golang.org/x/crypto v0.4.0
 	golang.org/x/text v0.5.0
