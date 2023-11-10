@@ -8,12 +8,20 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-func Initialize(szUrl string, pSrc BackupFolder) BackupFolder {
-	foldURL, err := url.Parse(szUrl)
+func Initialize(szPath string, pSrc BackupFolder) BackupFolder {
+
+	if filepath.IsAbs(szPath) || filepath.IsLocal(szPath) {
+		return InitializeToPathLocal(szPath, pSrc)
+	}
+	//TODO: In case of windows, handle \\server\share kind of URLs.
+
+	//now the remote URLs
+	foldURL, err := url.Parse(szPath)
 	if err != nil {
 		log.Fatalln("Unable to parse Source URL", err)
 	}
@@ -22,17 +30,15 @@ func Initialize(szUrl string, pSrc BackupFolder) BackupFolder {
 		return InitializeToPathSmb(foldURL, pSrc)
 	case "sftp", "ssh":
 		return InitializeToPathSftp(foldURL, pSrc)
-	case "":
-		return InitializeToPathLocal(foldURL, pSrc)
 	default:
-		log.Fatalf("Unknown or invalid source folder/URL %s", szUrl)
+		log.Fatalf("Unknown or invalid source folder/URL scheme '%s'", foldURL.Scheme)
 	}
 	return nil
 }
 
 type BackupFolder interface {
 	getPerm() fs.FileMode
-	getUrl() *url.URL
+	//getUrl() *url.URL
 	getRootFolder() string
 
 	Stat(name string) (fs.FileInfo, error)
@@ -89,17 +95,17 @@ func ReadDir(bkps BackupFolder, dirname string) ([]os.FileInfo, error) {
 
 func checkExists(bkps BackupFolder, pSrc BackupFolder) {
 	//check if folder exists.
-	fst, err := bkps.Stat(bkps.getUrl().Path)
+	fst, err := bkps.Stat(bkps.getRootFolder())
 	if errors.Is(err, fs.ErrNotExist) {
 		if pSrc == nil {
-			log.Fatalf("Specified local folder '%s' does not exist. Aborting...", bkps.getUrl().Path)
+			log.Fatalf("Specified local folder '%s' does not exist. Aborting...", bkps.getRootFolder())
 		} else {
-			log.Printf("Specified destination folder '%s' does not exist. Creating.", bkps.getUrl().Path)
-			errDir := bkps.MkdirAll(bkps.getUrl().Path, pSrc.getPerm())
+			log.Printf("Specified destination folder '%s' does not exist. Creating.", bkps.getRootFolder())
+			errDir := bkps.MkdirAll(bkps.getRootFolder(), pSrc.getPerm())
 			if errDir != nil {
 				log.Fatalln("Error creating destination folder: ", errDir)
 			}
-			fsn, err := bkps.Stat(bkps.getUrl().Path) //stat again. just to make sure.
+			fsn, err := bkps.Stat(bkps.getRootFolder()) //stat again. just to make sure.
 			if errors.Is(err, fs.ErrNotExist) {
 				log.Fatalln("Error creating destination folder: ", err)
 			}
@@ -108,7 +114,7 @@ func checkExists(bkps BackupFolder, pSrc BackupFolder) {
 	} else if err != nil {
 		log.Fatalln("Error checking ", getBackupFolderType(pSrc), " folder: ", err)
 	} else if fst.IsDir() == false { //exists, but not a folder
-		log.Fatalf("'%s' exists but is not a folder.", bkps.getUrl().String())
+		log.Fatalf("'%s' exists but is not a folder.", bkps.getRootFolder())
 	} else {
 		bkps.setRootMode(fst.Mode())
 	}

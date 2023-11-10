@@ -21,6 +21,8 @@ func TestExclusions(t *testing.T) {
 
 	chkPath := fmt.Sprintf("%s%c%s", hdir, os.PathSeparator, "Downloads")
 
+	fmt.Println("Testing folder ", chkPath)
+
 	bkps := Initialize(chkPath, nil)
 
 	var zte ztExclude
@@ -29,7 +31,7 @@ func TestExclusions(t *testing.T) {
 
 	osSpec := getOsSpecificExcludes()
 
-	fmt.Println("OS Specific = ", len(osSpec))
+	fmt.Println("\r\nOS Specific = ", len(osSpec))
 
 	for _, rn := range osSpec {
 		fmt.Println("  File/Folder: ", rn)

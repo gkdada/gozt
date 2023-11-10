@@ -4,20 +4,17 @@ import (
 	"bufio"
 	"io/fs"
 	"log"
-	"net/url"
 	"os"
 	"time"
 )
 
 type LocalBackupFolder struct {
 	rootPerm fs.FileMode
-	rootUrl  *url.URL
+	//rootUrl  *url.URL
+
+	szRootPath string
 
 	oFile *os.File
-}
-
-func (bkps *LocalBackupFolder) getUrl() *url.URL {
-	return bkps.rootUrl
 }
 
 func (bkps *LocalBackupFolder) getPerm() fs.FileMode {
@@ -25,7 +22,8 @@ func (bkps *LocalBackupFolder) getPerm() fs.FileMode {
 }
 
 func (bkps *LocalBackupFolder) getRootFolder() string {
-	return bkps.rootUrl.Path
+	return bkps.szRootPath
+	//return bkps.rootUrl.Path
 }
 
 func (bkps *LocalBackupFolder) setRootMode(fm fs.FileMode) {
@@ -93,27 +91,28 @@ func (bkps *LocalBackupFolder) getScanner() *bufio.Scanner {
 	return bufio.NewScanner(bkps.oFile)
 }
 
-func InitializeToPathLocal(szUrl *url.URL, pSrc BackupFolder) BackupFolder {
+func InitializeToPathLocal(szPath string, pSrc BackupFolder) BackupFolder {
 	//just open the specified folder. if failed, probably no access?
-
 	var bkps LocalBackupFolder
 
-	bkps.rootUrl = szUrl
+	bkps.szRootPath = szPath
+
+	//bkps.rootUrl = szUrl
 
 	checkExists(&bkps, pSrc)
 
 	//check if folder exists.
-	fst, err := os.Stat(szUrl.Path)
+	fst, err := os.Stat(szPath)
 	if os.IsNotExist(err) {
 		if pSrc == nil {
-			log.Fatalf("Specified local folder '%s' does not exist. Aborting...", szUrl.Path)
+			log.Fatalf("Specified local folder '%s' does not exist. Aborting...", szPath)
 		} else {
-			log.Printf("Specified destination folder '%s' does not exist. Creating.", szUrl.Path)
-			errDir := os.MkdirAll(szUrl.Path, pSrc.getPerm())
+			log.Printf("Specified destination folder '%s' does not exist. Creating.", szPath)
+			errDir := os.MkdirAll(szPath, pSrc.getPerm())
 			if errDir != nil {
 				log.Fatalln("Error creating destination folder: ", errDir)
 			}
-			fsn, err := os.Stat(szUrl.Path) //stat again. just to make sure.
+			fsn, err := os.Stat(szPath) //stat again. just to make sure.
 			if os.IsNotExist(err) {
 				log.Fatalln("Error creating destination folder: ", err)
 			}
@@ -122,7 +121,7 @@ func InitializeToPathLocal(szUrl *url.URL, pSrc BackupFolder) BackupFolder {
 	} else if err != nil {
 		log.Fatalln("Error checking ", getBackupFolderType(pSrc), " folder: ", err)
 	} else if fst.IsDir() == false { //exists, but not a folder
-		log.Fatalf("'%s' exists but is not a folder.", szUrl.String())
+		log.Fatalf("'%s' exists but is not a folder.", szPath)
 	} else {
 		bkps.rootPerm = fst.Mode()
 	}
