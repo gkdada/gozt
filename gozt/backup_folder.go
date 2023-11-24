@@ -15,9 +15,14 @@ import (
 
 func Initialize(szPath string, pSrc BackupFolder) BackupFolder {
 
-	if filepath.IsAbs(szPath) || filepath.IsLocal(szPath) {
-		return InitializeToPathLocal(szPath, pSrc)
+	//fix2: IsLocal (or IsAbs) in Linux returns true for remote folder as well
+	// but that test is required in Windows. So, we test for smb and sftp first.
+	if !strings.HasPrefix(szPath, "smb://") && !strings.HasPrefix(szPath, "sftp://") {
+		if filepath.IsAbs(szPath) || filepath.IsLocal(szPath) {
+			return InitializeToPathLocal(szPath, pSrc)
+		}
 	}
+
 	//TODO: In case of windows, handle \\server\share kind of URLs.
 
 	//now the remote URLs
