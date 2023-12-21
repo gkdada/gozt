@@ -9,5 +9,13 @@ package main
 //.~lock files are created by libreoffice when editing. These are machine specific and should not be backed up.
 
 func getOsSpecificExcludes() []string {
-	return []string{".localized", "._DS_Store", ".~lock.*"}
+	return []string{".localized", 
+			"._DS_Store", 
+			".~lock.*",
+		       "Photos Library.photoslibrary",
+		       "Music Library.musiclibrary",
+			"TV Library.tvlibrary"
+		       "Media.localized",
+		       ".localized",
+		       }
 }
