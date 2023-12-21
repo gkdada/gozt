@@ -16,6 +16,6 @@ func getOsSpecificExcludes() []string {
 		       "Music Library.musiclibrary",
 			"TV Library.tvlibrary"
 		       "Media.localized",
-		       ".localized",
+		       ".localized"
 		       }
 }
