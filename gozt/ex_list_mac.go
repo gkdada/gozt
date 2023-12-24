@@ -10,7 +10,8 @@ package main
 
 func getOsSpecificExcludes() []string {
 	return []string{".localized", 
-			"._DS_Store", 
+			"._DS_Store",
+			".DS_Store",
 			".~lock.*",
 		       "Photos Library.photoslibrary",
 		       "Music Library.musiclibrary",
