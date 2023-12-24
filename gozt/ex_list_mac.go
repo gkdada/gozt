@@ -15,7 +15,7 @@ func getOsSpecificExcludes() []string {
 			".~lock.*",
 		       "Photos Library.photoslibrary",
 		       "Music Library.musiclibrary",
-			"TV Library.tvlibrary"
+			"TV Library.tvlibrary",
 		       "Media.localized",
 		       ".localized"
 		       }
