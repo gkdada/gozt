@@ -87,6 +87,17 @@ There is an ex_list_linux.go which returns items like ".~lock.*" (which is a loc
 
 An ex_list_windows.go returns items like "hiberfil.sys", "pagefile.sys" and "$Recycle.Bin".
 
+## History
+
+The name 'zero touch backup' is both historic and anamalous.
+
+Zero-touch backup originated in mid-2000s as a Windows application that ran in the background and scanned all internal & external drives periodically (and external drives when they came online) for backup config files. These config files would then be run at preset times to update the backups. The best use of this tool was to create a backup configuration file on your backup drive, so that you just need to connect the drive to your system to update the backup! Some hard drive manufacturer (WD?) was advertising at that time that they had a button the drive and you just need to press that button to update the backup. They called it "one-touch backup". This tool need no 'touch' at all, since it updated the backup as soon as you connected the drive. Hence the name "zero-touch backup" (ZtB for short).
+
+Fast forward to 2014 or so when I got sick of Microsoft operating systems and switched over entirely to Linux for all my personal needs. I tried using rsync and a few other backup tools but nothing worked as properly and cleanly (for me) as my beloved ZtB, so I rewrote a command line version of Zero-touch Backup in Linux and called it ztbackup. It would be more than 5 years before I finally uploaded the project to github.
+
+With the dawn of 2020s, I happened to wander into Go language and decided to develop a Go version of ztbackup both as an exercise and as a way to make ztbackup more portable. Gozt is the result of that effort.
+
+So, gozt continues to be called 'zero-touch backup' even though the concept of 'zero-touch' no longer applies to it!
 
 ## Final notes
 
