@@ -9,7 +9,7 @@ The source or destination can be a local drive (relative or absolute path), samb
 
 A folder in a samba share must be specified in the form of "smb://username:password@server-IP-or-Name/[Path]".
 
-A folder in an remote ssh location must be specified in the form of "ssh://username[:password]@server_ip_or_name[:port]/path". However, we do not recommend providing plain text passwords in command line or in shell script files. It is much safer to add the client's keys to server's 'authorized_keys' so that the client can login without the need for a password. gozt automatically searches for and use .ssh/id_rsa for ssh/sftp communication in the absence of password.
+A folder in an remote ssh location must be specified in the form of "sftp://username[:password]@server_ip_or_name[:port]/path". However, we do not recommend providing plain text passwords in command line or in shell script files. It is much safer to add the client's keys to server's 'authorized_keys' so that the client can login without the need for a password. gozt automatically searches for and use .ssh/id_rsa for sftp communication in the absence of password.
 
 
 
