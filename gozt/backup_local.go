@@ -120,7 +120,7 @@ func InitializeToPathLocal(szPath string, pSrc BackupFolder) BackupFolder {
 		}
 	} else if err != nil {
 		log.Fatalln("Error checking ", getBackupFolderType(pSrc), " folder: ", err)
-	} else if fst.IsDir() == false { //exists, but not a folder
+	} else if !fst.IsDir() { //exists, but not a folder
 		log.Fatalf("'%s' exists but is not a folder.", szPath)
 	} else {
 		bkps.rootPerm = fst.Mode()

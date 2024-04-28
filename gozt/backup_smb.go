@@ -28,9 +28,9 @@ type SmbBackupFolder struct {
 	oFile *smb2.File
 }
 
-func (bkps *SmbBackupFolder) getUrl() *url.URL {
-	return bkps.rootUrl
-}
+// func (bkps *SmbBackupFolder) getUrl() *url.URL {
+// 	return bkps.rootUrl
+// }
 
 func (bkps *SmbBackupFolder) getPerm() fs.FileMode {
 	return bkps.rootPerm

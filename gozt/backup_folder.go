@@ -103,7 +103,7 @@ func checkExists(bkps BackupFolder, pSrc BackupFolder) {
 	fst, err := bkps.Stat(bkps.getRootFolder())
 	if errors.Is(err, fs.ErrNotExist) {
 		if pSrc == nil {
-			log.Fatalf("Specified local folder '%s' does not exist. Aborting...", bkps.getRootFolder())
+			log.Fatalf("Specified source folder '%s' does not exist. Aborting...", bkps.getRootFolder())
 		} else {
 			log.Printf("Specified destination folder '%s' does not exist. Creating.", bkps.getRootFolder())
 			errDir := bkps.MkdirAll(bkps.getRootFolder(), pSrc.getPerm())
@@ -118,7 +118,7 @@ func checkExists(bkps BackupFolder, pSrc BackupFolder) {
 		}
 	} else if err != nil {
 		log.Fatalln("Error checking ", getBackupFolderType(pSrc), " folder: ", err)
-	} else if fst.IsDir() == false { //exists, but not a folder
+	} else if !fst.IsDir() { //exists, but not a folder
 		log.Fatalf("'%s' exists but is not a folder.", bkps.getRootFolder())
 	} else {
 		bkps.setRootMode(fst.Mode())

@@ -13,7 +13,7 @@ type VersionInfo struct {
 func VerInfo() VersionInfo {
 	return VersionInfo{3,
 		1,
-		4}
+		5}
 }
 
 func Fatalln(line string) {

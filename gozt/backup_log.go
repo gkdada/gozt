@@ -40,14 +40,14 @@ func (ztl *ZtLog) Printf(format string, a ...any) {
 
 	outs := fmt.Sprintf(format, a...)
 
-	fmt.Printf(outs)
+	fmt.Print(outs)
 	if ztl.logFile == nil {
 		ztl.OpenLogFile()
 	}
 	if ztl.logFile == nil {
 		return
 	}
-	fmt.Fprintf(ztl.logFile, outs)
+	fmt.Fprint(ztl.logFile, outs)
 }
 
 func (ztl *ZtLog) CloseLogFile() {

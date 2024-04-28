@@ -29,9 +29,10 @@ type SftpBackupFolder struct {
 func (bkps *SftpBackupFolder) getPerm() fs.FileMode {
 	return bkps.rootPerm
 }
-func (bkps *SftpBackupFolder) getUrl() *url.URL {
-	return bkps.rootUrl
-}
+
+// func (bkps *SftpBackupFolder) getUrl() *url.URL {
+// 	return bkps.rootUrl
+// }
 
 func (bkps *SftpBackupFolder) getRootFolder() string {
 	return bkps.rootUrl.Path
@@ -128,7 +129,7 @@ func InitializeToPathSftp(szRoot *url.URL, pSrc BackupFolder) BackupFolder {
 
 	var conf *ssh.ClientConfig
 
-	if isPassword == false {
+	if !isPassword {
 		//use RSA keys
 		hdir, err := os.UserHomeDir()
 		if err != nil {

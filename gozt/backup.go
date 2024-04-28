@@ -22,8 +22,8 @@ const (
 	optDelete
 )
 
-const StdQueryDelaySeconds = 120         //seconds
-const MinHalvingDelay = time.Duration(4) //minimum delay of 4 seconds. If the QueryDelay is more than this, we halve it.
+const StdQueryDelay time.Duration = 120 * time.Second //seconds
+const MinHalvingDelay time.Duration = 4 * time.Second //minimum delay of 4 seconds. If the QueryDelay is more than this, we halve it.
 
 type ztStatistics struct {
 	NumFolders int64
@@ -42,18 +42,16 @@ type ztStatistics struct {
 }
 
 type Backup struct {
-	FileOption        BackupOption
-	FolderOption      BackupOption
-	RecursiveFlag     bool
-	QueryDelaySeconds time.Duration //starts with 120 seconds, halves with every timeout until
-	Statistics        ztStatistics
-	ztl               ZtLog
+	FileOption    BackupOption
+	FolderOption  BackupOption
+	RecursiveFlag bool
+	QueryDelay    time.Duration //starts with 120 seconds, halves with every timeout until
+	Statistics    ztStatistics
+	ztl           ZtLog
 
 	folderSkipCount  int
 	statPrinter      *message.Printer
 	srcBack, dstBack *BackupFolder
-
-	osSpecificExcludes []string
 }
 
 func (bkp *Backup) ProcessFlags(flags string) {
@@ -94,7 +92,7 @@ func (bkp *Backup) LogPrintf(format string, a ...any) {
 
 func (bkp *Backup) StartBackup(src *BackupFolder, dst *BackupFolder) error {
 
-	bkp.QueryDelaySeconds = StdQueryDelaySeconds
+	bkp.QueryDelay = StdQueryDelay
 
 	bkp.srcBack = src
 	bkp.dstBack = dst
@@ -131,7 +129,7 @@ func (bkp *Backup) recurseBackup(folderPath string) error {
 	bkp.Statistics.NumFolders++
 
 	bkp.folderSkipCount = 0
-	srcInfo, err := getFileInfo(*bkp.srcBack, folderPath, "")
+	srcInfo, _ := getFileInfo(*bkp.srcBack, folderPath, "")
 	err = bkp.ensurePath(*bkp.dstBack, folderPath, srcInfo.Mode())
 	if err != nil {
 		fmt.Println("\rError creating path for ", folderPath, err)
@@ -178,7 +176,7 @@ func (bkp *Backup) recurseBackup(folderPath string) error {
 		//log.Printf("ctr: %s \t\t%s", ModeString(ctr), ctr.Name())
 		if ctr.IsDir() && bkp.RecursiveFlag {
 			/*err :=*/
-			if zte.IsExcluded(ctr.Name()) != true {
+			if !zte.IsExcluded(ctr.Name()) {
 				bkp.recurseBackup(bkp.prepareName(folderPath, ctr.Name()))
 			} else {
 				bkp.Statistics.NumFolders++
@@ -191,7 +189,8 @@ func (bkp *Backup) recurseBackup(folderPath string) error {
 
 func (bkp *Backup) recurseRestore(folderPath string, srcInfo fs.FileInfo) {
 	//since the folder doesn't exist, we just restore everything full speed
-	err := bkp.ensurePath(*bkp.srcBack, folderPath, srcInfo.Mode())
+	/*err := */
+	bkp.ensurePath(*bkp.srcBack, folderPath, srcInfo.Mode())
 	fmtd, err := ReadDir(*bkp.dstBack, folderPath)
 
 	if err != nil {
@@ -237,7 +236,7 @@ func (bkp *Backup) processRegularFile(fStart fs.FileInfo, path string, zte ztExc
 	status := copyLeave
 	//1. Does the file exist in destination?
 	if bForward {
-		if zte.IsExcluded(fStart.Name()) != true { //skipped due to .ztexclude. Only applies to forward.
+		if !zte.IsExcluded(fStart.Name()) { //skipped due to .ztexclude. Only applies to forward.
 			fDst, err := getFileInfo(*bkp.dstBack, path, fStart.Name())
 			if errors.Is(err, fs.ErrNotExist) {
 				//fmt.Printf("File %s does not exist.\r\n", bkp.prepareName(path, fStart.Name()))
@@ -248,7 +247,7 @@ func (bkp *Backup) processRegularFile(fStart fs.FileInfo, path string, zte ztExc
 		}
 	} else {
 		//In Reverse, we check for OS specific only. The rest can stay.
-		if zte.IsOsSpecific(fStart.Name()) == true {
+		if zte.IsOsSpecific(fStart.Name()) {
 			status = copyDeleteDestination
 		} else {
 			_, err := getFileInfo(*bkp.srcBack, path, fStart.Name())
@@ -385,7 +384,7 @@ func (bkp *Backup) OneCharAnswer(Query string, Answers string, defaultAnswer run
 
 	fmt.Println(Query)
 
-	do_until := time.Now().Add(time.Duration(bkp.QueryDelaySeconds * time.Second))
+	do_until := time.Now().Add(bkp.QueryDelay)
 
 	for {
 		select {
@@ -404,65 +403,23 @@ func (bkp *Backup) OneCharAnswer(Query string, Answers string, defaultAnswer run
 			if strings.Contains(Answers, string(char)) {
 				return char
 			}
-			break
 		default:
 			if time.Now().Before(do_until) {
-				fmt.Printf("\r[%c] in %d seconds: ", defaultAnswer, int(do_until.Sub(time.Now()).Seconds()))
+				fmt.Printf("\r[%c] in %d seconds: ", defaultAnswer, int(time.Until(do_until).Seconds())) //int(do_until.Sub(time.Now()).Seconds()))
 				time.Sleep(time.Millisecond * 20)
 			} else {
 				//timeout occurred
-				if bkp.QueryDelaySeconds > MinHalvingDelay {
-					bkp.QueryDelaySeconds = bkp.QueryDelaySeconds / 2
+				if bkp.QueryDelay > MinHalvingDelay {
+					bkp.QueryDelay = bkp.QueryDelay / 2
 				}
 				return defaultAnswer
 			}
 		}
 	}
-	return defaultAnswer
 }
 
-// func (bkp *Backup) OneCharAnswer(Query string, Answers string, defaultAnswer rune) rune {
-// 	bExit := false
-
-// 	var pushx = keyboard.KeyEvent{
-// 		Key:  0,
-// 		Rune: defaultAnswer,
-// 		Err:  nil,
-// 	}
-
-// 	go func() {
-// 		do_until := time.Now().Add(time.Duration(bkp.QueryDelaySeconds * time.Second))
-// 		for time.Now().Before(do_until) {
-// 			fmt.Printf("\r%s: [%c] in %d seconds ", Query, defaultAnswer, int(do_until.Sub(time.Now()).Seconds()))
-// 			time.Sleep(time.Millisecond * 20)
-// 			if bExit {
-// 				return
-// 			}
-// 		}
-// 		//timeout occurred.
-// 		if bkp.QueryDelaySeconds > MinHalvingDelay {
-// 			bkp.QueryDelaySeconds = bkp.QueryDelaySeconds / 2
-// 		}
-// 		keyboard.PushKey(pushx)
-// 		return
-// 	}()
-
-// 	for {
-// 		char, _, err := keyboard.GetSingleKey()
-// 		if err == nil {
-// 			char = unicode.ToLower(char)
-// 			if char == 'q' {
-// 				fmt.Printf("\r\nExiting...")
-// 				os.Exit(0)
-// 			}
-// 			if strings.Contains(Answers, string(char)) {
-// 				bExit = true
-// 				return char
-// 			}
-// 		}
-// 	}
-// 	return defaultAnswer
-// }
+//if bForward is true, copy from source to destination
+//else copy from destination to source.
 
 func (bkp *Backup) copyFile(path string, fi fs.FileInfo, bForward bool) error {
 
