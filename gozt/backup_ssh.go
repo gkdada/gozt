@@ -140,10 +140,14 @@ func InitializeToPathSftp(szRoot *url.URL, pSrc BackupFolder) BackupFolder {
 			hdir = fmt.Sprintf("/home/%s", uname)
 		}
 		fmt.Printf("HomeDirectory: %s\r\n", hdir)
-		hdir = fmt.Sprintf("%s/.ssh/id_rsa", hdir)
-		key, err := os.ReadFile(hdir)
+		keyLoc := fmt.Sprintf("%s/.ssh/id_rsa", hdir)
+		key, err := os.ReadFile(keyLoc)
 		if err != nil {
-			log.Fatalf("unable to read private SSH/RSA key: %v", err)
+			keyLoc = fmt.Sprintf("%s/.ssh/id_ed25519", hdir)
+			key, err = os.ReadFile(keyLoc)
+			if err != nil {
+				log.Fatalf("unable to read private SSH/RSA key: %v", err)
+			}
 		}
 		// Create the Signer for this private key.
 		signer, err := ssh.ParsePrivateKey(key)
