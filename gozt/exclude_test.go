@@ -10,6 +10,16 @@ import (
 // One folder that is common to all major OSes (Linux, MacOS, Windows) is HomeFolder->Downloads.
 // So the test routine will use THAT folder to check for excluded files and folders.
 
+func pathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true //if it exists but we cannot access it, it is different.
+}
+
 func TestExclusions(t *testing.T) {
 
 	hdir, err := os.UserHomeDir()
@@ -20,7 +30,13 @@ func TestExclusions(t *testing.T) {
 	}
 
 	chkPath := fmt.Sprintf("%s%c%s", hdir, os.PathSeparator, "Downloads")
-
+	if pathExists(chkPath) == false {
+		chkPath = hdir
+		if pathExists(chkPath) == false {
+			fmt.Println("Not continuing with the test as home folder is not accessible. May be running in a pod/with a system account or something")
+			return
+		}
+	}
 	fmt.Println("Testing folder ", chkPath)
 
 	bkps := Initialize(chkPath, nil)
